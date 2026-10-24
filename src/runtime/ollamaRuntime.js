@@ -212,20 +212,53 @@ export function stopRuntime() {
   if (child) child.kill('SIGTERM');
 }
 
-/** Download the default model if it is not installed yet (so first request just works). */
+/**
+ * Streams a model download with progress and retries (Ollama resumes partial downloads).
+ * Streaming matters: a single non-streaming request is cut by Node's fetch after 5 min of silence.
+ */
+export async function pullModel(name, { retries = 6 } = {}) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(`${config.ollama.url}/api/pull`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ model: name, stream: true }),
+        signal: AbortSignal.timeout(config.ollama.pullTimeoutMs),
+      });
+      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+      const dec = new TextDecoder();
+      let buf = '', lastLog = 0, lastStatus = '';
+      for await (const chunk of res.body) {
+        buf += dec.decode(chunk, { stream: true });
+        let nl;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+          if (!line) continue;
+          const j = JSON.parse(line);
+          if (j.error) throw new Error(j.error);
+          const now = Date.now();
+          if (j.total && now - lastLog > 5000) {
+            lastLog = now;
+            console.log(`[ollama] ${name}: ${(100 * (j.completed ?? 0) / j.total).toFixed(0)}% (${((j.completed ?? 0) / 1048576).toFixed(0)} / ${(j.total / 1048576).toFixed(0)} MB)`);
+          } else if (!j.total && j.status && j.status !== lastStatus) { lastStatus = j.status; console.log(`[ollama] ${name}: ${j.status}`); }
+        }
+      }
+      return true;
+    } catch (e) {
+      console.error(`[ollama] pull ${name} failed (attempt ${attempt}/${retries}): ${e.cause?.message ?? e.message}`);
+      if (attempt < retries) await sleep(Math.min(30000, attempt * 5000));
+    }
+  }
+  return false;
+}
+
+/** Download the default model if it is not installed yet. Returns true if it is available. */
 export async function ensureDefaultModel(name) {
   try {
     const tags = await (await fetch(`${config.ollama.url}/api/tags`)).json();
-    const have = (tags.models ?? []).some((m) => m.name === name || m.name === `${name}:latest`);
-    if (have) return;
-    console.log(`[ollama] pulling default model ${name} (first run)…`);
-    const r = await fetch(`${config.ollama.url}/api/pull`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ model: name, stream: false }), signal: AbortSignal.timeout(config.ollama.pullTimeoutMs),
-    });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    console.log(`[ollama] ${name} ready`);
-  } catch (e) {
-    console.error(`[ollama] could not pull ${name}: ${e.message}`);
-  }
+    if ((tags.models ?? []).some((m) => m.name === name || m.name === `${name}:latest`)) return true;
+  } catch { /* fall through to pull */ }
+  console.log(`[ollama] pulling default model ${name} (first run)…`);
+  const ok = await pullModel(name);
+  console.log(ok ? `[ollama] ${name} ready` : `[ollama] could not download ${name}. Restart to retry; check disk space and internet access.`);
+  return ok;
 }

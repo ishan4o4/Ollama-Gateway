@@ -17,9 +17,10 @@ const server = createApp().listen(config.port, config.host, () => {
 
 async function startup() {
   await startRuntime(); // finds/downloads/starts Ollama by itself
-  if (config.runtime.pullDefault && !config.auto.enabled) await ensureDefaultModel(config.models.default);
+  let haveDefault = true;
+  if (config.runtime.pullDefault && !config.auto.enabled) haveDefault = await ensureDefaultModel(config.models.default);
   if (!config.auto.enabled) {
-    if (config.preloadOnStart) await preloadConfiguredModels();
+    if (config.preloadOnStart && haveDefault) await preloadConfiguredModels();
     return;
   }
   for (let attempt = 1; attempt <= 6; attempt++) {

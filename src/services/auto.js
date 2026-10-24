@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import os from 'node:os';
+import { pullModel } from '../runtime/ollamaRuntime.js';
 import { config } from '../config.js';
 import { slots } from '../middleware/concurrency.js';
 import { keepAliveFor, loadModel, normName, unloadModel } from './models.js';
@@ -81,7 +82,7 @@ async function run() {
     if (!installed.has(normName(m.name))) {
       if (!auto.pull) { report.push({ ...entry, result: 'skipped (not installed; set AUTO_PULL=true to download)' }); continue; }
       try {
-        await ollamaJson('/api/pull', { body: { model: m.name, stream: false }, timeoutMs: config.ollama.pullTimeoutMs });
+        if (!(await pullModel(m.name))) throw new Error('download failed');
       } catch (e) { report.push({ ...entry, result: `skipped (pull failed: ${e.message})` }); continue; }
     }
 
