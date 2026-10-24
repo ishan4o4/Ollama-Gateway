@@ -1,0 +1,25 @@
+{
+  "name": "ollama-gateway",
+  "version": "1.0.0",
+  "description": "Secure, resource-capped REST gateway in front of an Ollama server",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "ollama": "node scripts/start-ollama.js",
+    "genkey": "node scripts/genkey.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "tar": "^7.5.0",
+    "fzstd": "^0.1.1"
+  }
+}

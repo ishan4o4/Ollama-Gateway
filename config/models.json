@@ -1,0 +1,113 @@
+{
+  "defaultModel": "qwen3.5:4b",
+  "models": {
+    "qwen3.5:4b": {
+      "description": "Newer 4B model, thinking disabled for speed",
+      "capabilities": [
+        "chat",
+        "generate"
+      ],
+      "think": false,
+      "memoryGb": 3.4,
+      "paramsB": 4.0,
+      "quality": 60,
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.7
+      }
+    },
+    "llama3.2:1b": {
+      "description": "Tiny, fastest fallback",
+      "capabilities": [
+        "chat",
+        "generate"
+      ],
+      "memoryGb": 1.3,
+      "paramsB": 1.2,
+      "quality": 30,
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.7
+      }
+    },
+    "llama3.2:3b": {
+      "description": "Good small model for chat and summaries",
+      "capabilities": [
+        "chat",
+        "generate"
+      ],
+      "memoryGb": 2.0,
+      "paramsB": 3.2,
+      "quality": 55,
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.7
+      }
+    },
+    "qwen2.5:3b": {
+      "description": "Alternative 3B model",
+      "capabilities": [
+        "chat",
+        "generate"
+      ],
+      "memoryGb": 1.9,
+      "paramsB": 3.1,
+      "quality": 54,
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.7
+      }
+    },
+    "qwen2.5:7b": {
+      "description": "Much smarter, needs a faster CPU/GPU",
+      "capabilities": [
+        "chat",
+        "generate"
+      ],
+      "memoryGb": 4.7,
+      "paramsB": 7.6,
+      "quality": 70,
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.7
+      }
+    },
+    "llama3.1:8b": {
+      "description": "Strong general model",
+      "capabilities": [
+        "chat",
+        "generate"
+      ],
+      "memoryGb": 4.9,
+      "paramsB": 8.0,
+      "quality": 68,
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.7
+      }
+    },
+    "qwen2.5:14b": {
+      "description": "Only for big machines",
+      "capabilities": [
+        "chat",
+        "generate"
+      ],
+      "memoryGb": 9.0,
+      "paramsB": 14.8,
+      "quality": 85,
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.7
+      }
+    },
+    "nomic-embed-text": {
+      "description": "Embedding model (never auto-selected)",
+      "capabilities": [
+        "embed"
+      ],
+      "options": {
+        "num_ctx": 2048
+      }
+    }
+  }
+}
